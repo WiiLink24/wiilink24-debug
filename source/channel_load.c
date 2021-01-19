@@ -12,7 +12,7 @@
 
 u8 channelios;
 u16 bootindex;
-u32 bootid = -1;
+u32 bootid = 0xFFFFFFFF;
 u64 channelId;
 
 // Much of the following code is derived (from)
@@ -71,7 +71,7 @@ bool load_channel_metadata(u64 titleId) {
             bootid = titleTmd->contents[i].cid;
     }
 
-    if (bootid == -1) {
+    if (bootid == 0xFFFFFFFF) {
         printf("unable to find a bootable DOL.\n"
                "Are you sure the installed ticket is valid?\n");
         return false;

@@ -52,47 +52,49 @@ u8 *ISFS_GetFile(const char *path, u32 *size) {
     *size = 0;
     printf("ISFS_GetFile: reading %s\n", path);
     s32 fd = ISFS_Open(path, ISFS_OPEN_READ);
-    u8 *buf = NULL;
 
-    if (fd >= 0) {
-        memset(&stats, 0, sizeof(fstats));
-
-        s32 ret = ISFS_GetFileStats(fd, &stats);
-        if (ret >= 0) {
-            s32 length = stats.file_length;
-            buf = (u8 *)memalign(32, length);
-
-            if (buf) {
-                u32 tmp_size = ISFS_Read(fd, (char *)buf, length);
-
-                if (tmp_size == length) {
-                    // We were successful.
-                    *size = tmp_size;
-                } else {
-                    // If positive, the file could not be fully read.
-                    // If negative, it is most likely an underlying /dev/fs
-                    // error.
-                    if (tmp_size >= 0) {
-                        printf("ISFS_GetFile: only able to read %d out of "
-                               "%d bytes!\n",
-                               tmp_size, length);
-                    } else {
-                        printf("ISFS_GetFile: ISFS_Open reported error %d\n",
-                               tmp_size);
-                    }
-
-                    free(buf);
-                }
-            } else {
-                printf("ISFS_GetFile: failed to allocate buffer!\n");
-            }
-        } else {
-            printf("ISFS_GetFile: unable to retrieve file stats (error %d)\n",
-                   ret);
-        }
-        ISFS_Close(fd);
-    } else {
+    if (fd < 0) {
         printf("ISFS_GetFile: unable to open file (error %d)\n", fd);
     }
+
+    u8 *buf = NULL;
+
+    memset(&stats, 0, sizeof(fstats));
+
+    s32 ret = ISFS_GetFileStats(fd, &stats);
+    if (ret >= 0) {
+        s32 length = stats.file_length;
+        printf("File is %d bytes\n", length);
+        buf = (u8 *)memalign(32, length);
+
+        if (buf) {
+            s32 tmp_size = ISFS_Read(fd, (char *)buf, length);
+
+            if (tmp_size == length) {
+                // We were successful.
+                *size = tmp_size;
+            } else {
+                // If positive, the file could not be fully read.
+                // If negative, it is most likely an underlying /dev/fs
+                // error.
+                if (tmp_size >= 0) {
+                    printf("ISFS_GetFile: only able to read %d out of "
+                           "%d bytes!\n",
+                           tmp_size, length);
+                } else {
+                    printf("ISFS_GetFile: ISFS_Open reported error %d\n",
+                           tmp_size);
+                }
+
+                free(buf);
+            }
+        } else {
+            printf("ISFS_GetFile: failed to allocate buffer!\n");
+        }
+    } else {
+        printf("ISFS_GetFile: unable to retrieve file stats (error %d)\n", ret);
+    }
+    ISFS_Close(fd);
+
     return buf;
 }

@@ -25,7 +25,7 @@ INCLUDES	:=
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Werror -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	= -g -O2 -Werror -Wextra $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -108,7 +108,7 @@ clean:
 
 #---------------------------------------------------------------------------------
 run: build
-	wiiload $(TARGET).elf
+	wiiload $(TARGET).dol
 	# open -a Dolphin $(TARGET).elf
 
 

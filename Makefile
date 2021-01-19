@@ -25,7 +25,7 @@ INCLUDES	:=
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	= -g -O2 -Werror -Wall $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -108,9 +108,7 @@ clean:
 
 #---------------------------------------------------------------------------------
 run: build
-	cp $(TARGET).dol /Volumes/WII/apps/AAAAA/boot.dol
-	diskutil unmountDisk /Volumes/WII
-	# wiiload $(TARGET).dol
+	wiiload $(TARGET).elf
 	# open -a Dolphin $(TARGET).elf
 
 
@@ -126,6 +124,14 @@ $(OUTPUT).dol: $(OUTPUT).elf
 $(OUTPUT).elf: $(OFILES)
 
 $(OFILES_SOURCES) : $(HFILES)
+
+#---------------------------------------------------------------------------------
+# This rule links in our faked channel certificates.
+#---------------------------------------------------------------------------------
+%.dat.o	%_dat.h :	%.dat
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	$(bin2o)
 
 #---------------------------------------------------------------------------------
 # This rule links in our loader stub.

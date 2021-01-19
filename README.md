@@ -12,7 +12,7 @@ among other debug logging given along the way. In a sense, it's a hope to have
 Dolphin's HLE patching in hardware. We'll see if it can ever get there.
 
 As it stands, this tool is far from done. In current state it fails to even load
-the application, somehow corrupting the ES_Identify call underneath.
+the application, let alone patch in runtime.
 
 ## Contributing
 Please ensure you have run `clang-format` on touched files where possible.

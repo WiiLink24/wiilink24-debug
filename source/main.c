@@ -44,8 +44,6 @@ int main(int argc, char **argv) {
         goto finished;
     }
 
-    hexDump((void *)0x939f9370, 300);
-
     // TOOD: Allow configuration of loaded channel
     bool canLoadChannel = load_channel_metadata(0x000100014843494a);
     if (!canLoadChannel) {

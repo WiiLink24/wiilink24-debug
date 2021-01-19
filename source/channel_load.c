@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "certs_dat.h"
 #include "channel_load.h"
 #include "common.h"
 #include "helpers.h"
@@ -45,25 +46,14 @@ bool load_channel_metadata(u64 titleId) {
         return false;
     }
 
-    u32 certSize = 0;
-    strcpy(filename, "/sys/cert.sys");
-    u8 *certbuf = ISFS_GetFile(filename, &certSize);
-    if (certbuf == NULL || certbuf == 0) {
-        printf("failed reading system certificates!\n");
-        ISFS_Deinitialize();
-        return false;
-    }
-
     u32 keyId = 0;
-    s32 ret =
-        ES_Identify((signed_blob *)certbuf, certSize, (signed_blob *)tmdbuf,
-                    tmdSize, (signed_blob *)tikbuf, tikSize, &keyId);
+    s32 ret = ES_Identify((signed_blob *)certs_dat, certs_dat_size,
+                          (signed_blob *)tmdbuf, tmdSize, (signed_blob *)tikbuf,
+                          tikSize, &keyId);
     ISFS_Deinitialize();
 
     if (ret < 0) {
-        printf("failed telling ES we have changed titles!\n"
-               "Error given: %d\n",
-               ret);
+        printf("failed telling ES we have changed titles! (error %d)\n", ret);
         return false;
     }
 
@@ -92,10 +82,6 @@ bool load_channel_metadata(u64 titleId) {
     printf("ready to roll with IOS %d.\n", TITLE_LOWER(titleTmd->sys_version));
     printf("we will boot index %d (content ID %08x).\n", titleTmd->boot_index,
            bootid);
-
-    // Clean up.
-    free(tmdbuf);
-    free(tikbuf);
 
     return true;
 }

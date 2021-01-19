@@ -165,7 +165,7 @@ bool apply_patches() {
     bool ios_patched =
         patch_ios_range(ios_verify_old, ios_verify_patch, IOS_VERIFY_SIZE);
     if (!ios_patched) {
-        printf("unable to find and patch ES_Identify!\n");
+        printf("unable to find and patch IOSC_VerifyPublicKeySign!\n");
         return false;
     }
 

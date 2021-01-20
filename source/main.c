@@ -51,15 +51,15 @@ int main(int argc, char **argv) {
         goto finished;
     }
 
-    // void *entrypoint = load_channel_dol();
-    // if (entrypoint == NULL) {
-    //     printf("Error loading channel to run\n");
-    //     goto finished;
-    // }
-    // printf("Hey, it worked?\n");
+    void *entrypoint = load_channel_dol();
+    if (entrypoint == NULL) {
+        printf("Error loading channel to run\n");
+        goto finished;
+    }
+    printf("Hey, it worked?\n");
 
     // Thanks for coming, folks!
-    // jump_to_entrypoint(entrypoint);
+    jump_to_entrypoint(entrypoint);
 
 finished:
     while (1) {

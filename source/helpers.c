@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <malloc.h>
 #include <ogcsys.h>
 #include <stdio.h>
@@ -48,7 +49,7 @@ void hexDump(void *addr, int len) {
 
 // The author apologizes for the amount of error catching here.
 // In the end, blame Nintendo.
-u8 *ISFS_GetFile(const char *path, u32 *size) {
+void *ISFS_GetFile(const char *path, u32 *size) {
     *size = 0;
     printf("ISFS_GetFile: reading %s\n", path);
     s32 fd = ISFS_Open(path, ISFS_OPEN_READ);
@@ -57,18 +58,27 @@ u8 *ISFS_GetFile(const char *path, u32 *size) {
         printf("ISFS_GetFile: unable to open file (error %d)\n", fd);
     }
 
-    u8 *buf = NULL;
+    void *buf = NULL;
 
     memset(&stats, 0, sizeof(fstats));
 
     s32 ret = ISFS_GetFileStats(fd, &stats);
     if (ret >= 0) {
         s32 length = stats.file_length;
-        printf("File is %d bytes\n", length);
-        buf = (u8 *)memalign(32, length);
 
-        if (buf) {
-            s32 tmp_size = ISFS_Read(fd, (char *)buf, length);
+        // We must align our length by 32.
+        // memalign itself is dreadfully broken for unknown reasons.
+        s32 aligned_length = length;
+        s32 remainder = aligned_length % 32;
+        if (remainder != 0) {
+            aligned_length += 32 - remainder;
+        }
+
+        printf("File is %d bytes\n", length);
+        buf = aligned_alloc(32, aligned_length);
+
+        if (buf != NULL) {
+            s32 tmp_size = ISFS_Read(fd, buf, length);
 
             if (tmp_size == length) {
                 // We were successful.
@@ -82,14 +92,15 @@ u8 *ISFS_GetFile(const char *path, u32 *size) {
                            "%d bytes!\n",
                            tmp_size, length);
                 } else {
-                    printf("ISFS_GetFile: ISFS_Open reported error %d\n",
+                    printf("ISFS_GetFile: ISFS_Open failed! (error %d)\n",
                            tmp_size);
                 }
 
                 free(buf);
             }
         } else {
-            printf("ISFS_GetFile: failed to allocate buffer!\n");
+            printf("ISFS_GetFile: failed to allocate buffer! (error %d)\n",
+                   errno);
         }
     } else {
         printf("ISFS_GetFile: unable to retrieve file stats (error %d)\n", ret);

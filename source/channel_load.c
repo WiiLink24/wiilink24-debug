@@ -87,7 +87,6 @@ bool load_channel_metadata(u64 titleId) {
 }
 
 void *load_channel_dol() {
-    u32 i;
     char filename[256];
 
     // Prepare to read.
@@ -121,7 +120,7 @@ void *load_channel_dol() {
     memset(dol_header->bss_start, 0, dol_header->bss_size);
 
     // Copy executable segments.
-    for (i = 0; i < 18; i++) {
+    for (u32 i = 0; i < 18; i++) {
         u32 data_pos = dol_header->section_pos[i];
         void *data_start = dol_header->section_start[i];
         u32 data_size = dol_header->section_size[i];

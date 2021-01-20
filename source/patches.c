@@ -8,7 +8,7 @@
 #include "memory_layout.h"
 #include "patches.h"
 
-#define AHBPROT_ENABLED read32(HW_AHBPROT) != 0xFFFFFFFF
+#define AHBPROT_DISABLED read32(HW_AHBPROT) == 0xFFFFFFFF
 #define IOS_MEMORY_START (u32 *)0x933E0000
 #define IOS_MEMORY_END (u32 *)0x93FFFFFF
 
@@ -21,17 +21,17 @@ static const u16 isfs_permissions_patch[] = {0x428B, 0xE001, 0x2566};
 // following is a branch whose address is not guaranteed to always be the same.
 // For this reason, we may also patch ES_DiVerifyWithTicketView's condition
 // within the main ES Ioctlv handler.
-// (No issue there. We will never call it, and IOS should be reloaded soon.)
+// (No issue there. It cannot hurt anything.)
 static const u16 es_identify_old[] = {
     0x68cc, // ldr r4, [r1, #0xc]
     0x69a6, // ldr r6, [r4, #0x18]
-    0x6868, // ldr r0, [r5, #0x4] ; unfortunately, no clue what value this is
+    0x6868, // ldr r0, [r5, #0x4] ; context->UID, 3 seems to be DI
     0x2803  // cmp r0, #0x3
 };
 static const u16 es_identify_patch[] = {
     0x68cc, // ldr r4, [r1, #0xc]
     0x69a6, // ldr r6, [r4, #0x18]
-    0x2003, // mov r0, #0x3 ; always true
+    0x2003, // mov r0, #0x3 ; if you can't beat them, set yourself to them(?)
     0x2803  // cmp r0, #0x3
 };
 
@@ -110,24 +110,7 @@ bool patch_ios_range(const u16 original_patch[], const u16 new_patch[],
                               new_patch, patch_size);
 }
 
-bool patch_ahbprot_reset(void) {
-    // Check if we've already disabled AHBPROT.
-    // AHBPROT may already be disabled, depending on the user's IOS.
-    if (AHBPROT_ENABLED) {
-        return true;
-    }
-
-    // We'll need to disable MEM2 protections in order to write over IOS.
-    disable_memory_protections();
-
-    bool patched = patch_ios_range(ticket_check_old, ticket_check_patch,
-                                   TICKET_CHECK_SIZE);
-
-    if (!patched) {
-        printf("unable to find and patch ES memory!\n");
-        return false;
-    }
-
+bool reload_current_ios() {
     s32 current_ios = IOS_GetVersion();
     if (current_ios < 0) {
         printf("unable to get current IOS version! (error %d)\n", current_ios);
@@ -143,8 +126,37 @@ bool patch_ahbprot_reset(void) {
     return true;
 }
 
+bool patch_ahbprot_reset() {
+    // We'll need to disable MEM2 protections in order to write over IOS.
+    disable_memory_protections();
+
+    bool patched = patch_ios_range(ticket_check_old, ticket_check_patch,
+                                   TICKET_CHECK_SIZE);
+    if (!patched) {
+        printf("unable to find and patch ES memory!\n");
+        return false;
+    }
+
+    if (!reload_current_ios()) {
+        printf("failed to reload IOS!\n");
+        return false;
+    }
+
+    return true;
+}
+
 bool apply_patches() {
-    // Ensure once more that we can patch memory.
+    // Check if we've already disabled AHBPROT.
+    // AHBPROT may already be disabled, depending on the user's IOS.
+    if (AHBPROT_DISABLED) {
+        bool ahbprot_fix = patch_ahbprot_reset();
+        if (!ahbprot_fix) {
+            // patch_ahbprot_reset should log its own errors.
+            return false;
+        }
+    }
+
+    // Next, ensure that we can patch memory.
     // IOS reloading may have changed state.
     disable_memory_protections();
 

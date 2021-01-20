@@ -59,7 +59,6 @@ void *ISFS_GetFile(const char *path, u32 *size) {
     }
 
     void *buf = NULL;
-
     memset(&stats, 0, sizeof(fstats));
 
     s32 ret = ISFS_GetFileStats(fd, &stats);
@@ -74,7 +73,6 @@ void *ISFS_GetFile(const char *path, u32 *size) {
             aligned_length += 32 - remainder;
         }
 
-        printf("File is %d bytes\n", length);
         buf = aligned_alloc(32, aligned_length);
 
         if (buf != NULL) {

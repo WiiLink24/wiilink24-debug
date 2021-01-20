@@ -11,11 +11,10 @@
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
 
-int main(int argc, char **argv) {
-    // We need to patch before loading anything else.
-    bool successfully_applied = patch_ahbprot_reset();
+static void power_cb() { STM_ShutdownToStandby(); }
+static void reset_cb() { STM_RebootSystem(); }
 
-    // Now we're good.
+int main(int argc, char **argv) {
     VIDEO_Init();
     WPAD_Init();
 
@@ -31,22 +30,20 @@ int main(int argc, char **argv) {
     if (rmode->viTVMode & VI_NON_INTERLACE)
         VIDEO_WaitVSync();
 
+    SYS_SetPowerCallback(power_cb);
+    SYS_SetResetCallback(reset_cb);
+
     printf("\n\n\n\n\n\n");
 
+    bool successfully_applied = apply_patches();
     if (!successfully_applied) {
-        printf("Failed to apply the first stage IOS patch!\n");
-        goto finished;
-    }
-
-    successfully_applied = apply_patches();
-    if (!successfully_applied) {
-        printf("Failed to apply second stage IOS patches!\n");
+        printf("Failed to apply initial IOS patches!\n");
         goto finished;
     }
 
     // TOOD: Allow configuration of loaded channel
-    bool canLoadChannel = load_channel_metadata(0x000100014843494a);
-    if (!canLoadChannel) {
+    bool can_load_channel = load_channel_metadata(0x000100014843494a);
+    if (!can_load_channel) {
         printf("Error loading channel metadata\n");
         goto finished;
     }
@@ -56,7 +53,6 @@ int main(int argc, char **argv) {
         printf("Error loading channel to run\n");
         goto finished;
     }
-    printf("Hey, it worked?\n");
 
     // Thanks for coming, folks!
     jump_to_entrypoint(entrypoint);

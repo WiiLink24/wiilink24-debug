@@ -7,20 +7,20 @@
 #include "memory_layout.h"
 
 // From channel_load, taken from TMD
-extern u8 channelios;
+extern u8 channel_ios;
 // From exceptions.c within libogc
 extern void __exception_closeall();
 // Needed so we can reference from assembly.
 static void *channel_entrypoint;
+// lol
+static u64 titleId = 0;
 
 void jump_to_entrypoint(void *entrypoint) {
     channel_entrypoint = entrypoint;
 
-    // Change IOS.
-    __IOS_LaunchNewIOS(channelios);
-
     // Set up existing memory
-    set_low_mem(channelios);
+    // set_low_mem(channel_ios);
+    set_low_mem(channel_ios);
     set_temporary_time();
 
     // Shutdown IOS subsystems
@@ -29,7 +29,6 @@ void jump_to_entrypoint(void *entrypoint) {
     __exception_closeall();
 
     printf("Waiting to enter at %p\n", channel_entrypoint);
-    printf("using IOS %d\n", channelios);
 
     // We don't need program arguments.
     *(vu32 *)0xCC003024 = 1;
@@ -67,7 +66,7 @@ void jump_to_entrypoint(void *entrypoint) {
 
     // }
 
-    IRQ_Restore(level);
+    // IRQ_Restore(level);
 
     // A limerick for your woes:
     // we sit in memory and doze

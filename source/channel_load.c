@@ -9,8 +9,9 @@
 #include "common.h"
 #include "helpers.h"
 #include "memory_layout.h"
+#include "patches.h"
 
-u8 channelios;
+u8 channel_ios;
 u16 bootindex;
 u32 bootid = 0xFFFFFFFF;
 u64 channelId;
@@ -46,24 +47,49 @@ bool load_channel_metadata(u64 titleId) {
         return false;
     }
 
+    ISFS_Deinitialize();
+
+    // We now have the appropiate metadata. As we will need to identify to the
+    // channel's desired IOS, we take a quick moment to reload.
+    // We first strip the signature from the TMD. We do not care about it.
+    // This is 1:1 to what ES_GetStoredTMD would return if it were to be used.
+    // (Given we already have the TMD off NAND, there's no reason to.)
+    signed_blob *signedTmd = (signed_blob *)tmdbuf;
+    tmd *titleTmd = SIGNATURE_PAYLOAD(signedTmd);
+
+    channel_ios = titleTmd->sys_version & 0xFF;
+
+    // s32 current_ios = IOS_GetVersion();
+    // if (current_ios < 0) {
+    //     printf("unable to get current IOS version! (error %d)\n",
+    //     current_ios); return false;
+    // }
+    //
+    // printf("going from %d to %d\n", channel_ios, current_ios);
+    //
+    // // If the channel's IOS version isn't what we started with, we must
+    // repatch. if (channel_ios != current_ios) {
+    //     IOS_ReloadIOS(channel_ios);
+    //
+    //     bool reload_success = apply_patches();
+    //     if (!reload_success) {
+    //         // apply_patches should log its failure reason.
+    //         return false;
+    //     }
+    // }
+
+    // Now we are safe to carry on and identify.
     u32 keyId = 0;
     s32 ret = ES_Identify((signed_blob *)certs_dat, certs_dat_size,
                           (signed_blob *)tmdbuf, tmdSize, (signed_blob *)tikbuf,
                           tikSize, &keyId);
-    ISFS_Deinitialize();
 
     if (ret < 0) {
         printf("failed telling ES we have changed titles! (error %d)\n", ret);
         return false;
     }
 
-    // Strip the signature from the TMD. We do not care about it.
-    // This is 1:1 to what ES_GetStoredTMD would return if it were to be used.
-    signed_blob *signedTmd = (signed_blob *)tmdbuf;
-    tmd *titleTmd = SIGNATURE_PAYLOAD(signedTmd);
-
     // Collect information we can deal with.
-    channelios = titleTmd->sys_version & 0xFF;
     bootindex = titleTmd->boot_index;
     for (int i = 0; i < titleTmd->num_contents; i++) {
         // Find the content ID matching the index.
@@ -78,6 +104,8 @@ bool load_channel_metadata(u64 titleId) {
     }
 
     channelId = titleId;
+
+    printf("I was told %llx\n", titleTmd->title_id);
 
     printf("ready to roll with IOS %d.\n", TITLE_LOWER(titleTmd->sys_version));
     printf("we will boot index %d (content ID %08x).\n", titleTmd->boot_index,
@@ -114,7 +142,7 @@ void *load_channel_dol() {
     void *bootentrypoint = dol_header->entry_point;
 
     // The entrypoint isn't always an absolute address.
-    printf("entrypoint noted as being at 0x%p.\n", bootentrypoint);
+    printf("entrypoint noted as being at %p.\n", bootentrypoint);
 
     // Zero out BSS ahead of time.
     memset(dol_header->bss_start, 0, dol_header->bss_size);

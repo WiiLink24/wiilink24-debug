@@ -12,7 +12,7 @@ void prepare_low_mem() {
     *(vu32 *)0xCD00643C = 0x00000000;
 
     memset((u8 *)Disc_ID, 0, 32);
-    memset((void *)0x80001800, 0, 0x1800);
+    memset((void *)Vector_Area, 0, 0x1800);
     DCFlushRange((void *)0x80000000, 0x3f00);
 }
 
@@ -39,7 +39,6 @@ void set_low_mem(u32 ios_version) {
     *GameID_Address = 0x80000000;
 
     memcpy((void *)Online_Check, (void *)Disc_ID, 4);
-    memcpy((void *)Vector_Area, (void *)Disc_ID, 8);
     *Current_IOS = (ios_version << 16) | 0xffff;
     *Apploader_IOS = (ios_version << 16) | 0xffff;
 

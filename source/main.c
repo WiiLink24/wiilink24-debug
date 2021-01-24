@@ -58,6 +58,8 @@ int main(int argc, char **argv) {
     jump_to_entrypoint(entrypoint);
 
 finished:
+    printf("It appears something went wrong.\n"
+           "Press the HOME button to try again, or press Power/Reset.\n");
     while (1) {
         WPAD_ScanPads();
         u32 pressed = WPAD_ButtonsDown(0);

@@ -7,18 +7,17 @@ MEMORY {
     vector(rwx) : ORIGIN = 0x80001800, LENGTH = 0x1800
 }
 
-SECTIONS
-{
+SECTIONS {
+    /* Our actual code.
+    We expect 0x80000000 to be our immediate entrypoint. */
+    .text : {
+        *(.text)
+    } >vector
+
     /* Informational data we need to operate. */
     .data : {
         _DataStart = . ;
         *(.data)
         _DataEnd   = . ;
-
-    } >vector
-
-    /* Our actual code. */
-    .text : {
-        *(.text)
     } >vector
 }

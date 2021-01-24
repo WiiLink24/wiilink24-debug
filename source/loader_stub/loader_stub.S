@@ -18,6 +18,17 @@ msg:
 # We need to align it to 8 to allow execution.
 .text
 .balign 8
+_entrypoint:
+    # Currently the same as the offical loader to verify stub operation.
+    lwz r0,0x34(r1)  # load loaded game address from stack
+    lwz r31,0x2c(r1)
+    lwz r30,0x28(r1)
+    lwz r29,0x24(r1)
+    lwz r28,0x20(r1)
+    mtspr LR,r0      # set LR to data from r0
+    addi r1,r1,0x30
+    blr              # launch!
+
     .global OSReportHook
 OSReportHook:
     # Load the address of printf to r2.

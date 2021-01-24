@@ -67,5 +67,7 @@ static const u16 ios_verify_patch[] = {
 #define IOS_VERIFY_SIZE sizeof(ios_verify_patch)
 #define TICKET_CHECK_SIZE sizeof(ticket_check_patch)
 
+bool patch_memory_range(u32 *start, u32 *end, const u16 original_patch[],
+                        const u16 new_patch[], u32 patch_size);
 bool patch_ahbprot_reset();
 bool apply_patches();

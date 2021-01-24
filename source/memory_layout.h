@@ -29,6 +29,7 @@
 #define GameID_Address ((vu32 *)0x80003184)
 #define HW_PPCSPEED ((vu32 *)0xCD800018)
 #define Vector_Area ((vu32 *)0x80001800)
+#define Reset_Code 0xCC003024
 
 void prepare_low_mem();
 void set_low_mem(u32 ios_version);

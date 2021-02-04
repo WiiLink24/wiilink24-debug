@@ -1,4 +1,5 @@
 #include <gccore.h>
+#include <libpatcher/libpatcher.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <wiiuse/wpad.h>
@@ -6,7 +7,6 @@
 #include "boot.h"
 #include "channel_load.h"
 #include "helpers.h"
-#include "patches.h"
 
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;

@@ -1,3 +1,4 @@
+#include <libpatcher/libpatcher.h>
 #include <malloc.h>
 #include <ogc/es.h>
 #include <ogcsys.h>
@@ -9,7 +10,6 @@
 #include "common.h"
 #include "helpers.h"
 #include "memory_layout.h"
-#include "patches.h"
 
 u8 channel_ios;
 u16 bootindex;

@@ -1,4 +1,5 @@
 // Derived from source/usbloader/disc.c.
+#include <libpatcher/libpatcher.h>
 #include <ogc/machine/processor.h>
 #include <ogcsys.h>
 #include <stdio.h>
@@ -9,7 +10,6 @@
 #include "helpers.h"
 #include "loader_stub_bin.h"
 #include "memory_layout.h"
-#include "patches.h"
 
 #define LOADER_MEMORY_START (u32 *)0x81330000
 #define LOADER_MEMORY_END (u32 *)0x81800000

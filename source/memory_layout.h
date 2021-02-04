@@ -1,9 +1,6 @@
 // Derived from source/memory/memory.h within usbloadergx.
 #include <ogcsys.h>
 
-#define HW_AHBPROT 0x0d800064
-#define MEM2_PROT 0x0d8b420a
-
 #define Disc_ID ((vu32 *)0x80000000)
 #define Disc_Region ((vu32 *)0x80000003)
 #define Disc_Magic ((vu32 *)0x80000018)
